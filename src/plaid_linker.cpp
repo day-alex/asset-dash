@@ -17,7 +17,7 @@ std::string PlaidLinker::create_link_token() {
     {"secret", secret_},
     {"user", {{"client_user_id", "alex"}}},
     {"client_name", "Asset Dash"},
-    {"products", {"balance"}},
+    {"products", {"assets"}},
     {"country_codes", {"US"}},
     {"language", "en"},
     {"hosted_link", {

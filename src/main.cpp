@@ -1,7 +1,10 @@
 #include "asset_dash.h"
+#include "main_menu.h"
 
 int main() {
-    AssetDash app;
-    app.run_menu();
+    AssetDash dash;
+    MainMenu main_menu(dash);
+    main_menu.display();
+
     return 0;
 }

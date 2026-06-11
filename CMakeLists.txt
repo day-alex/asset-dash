@@ -9,7 +9,7 @@ include(FetchContent)
 
 FetchContent_Declare(ftxui
   GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
-  GIT_TAG v5.0.0
+  GIT_TAG v6.1.9
 )
 FetchContent_Declare(httplib
   GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
@@ -30,6 +30,7 @@ add_executable(asset_dash
   src/asset_dash.cpp
   src/account.cpp
   src/account_factory.cpp
+  src/main_menu.cpp
 )
 
 target_link_libraries(asset_dash PRIVATE
