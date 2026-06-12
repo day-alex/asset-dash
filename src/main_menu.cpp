@@ -1,20 +1,20 @@
 #include "main_menu.h"
-#include <ftxui/component/component.hpp>          // Menu, Renderer, Container
-#include <ftxui/component/screen_interactive.hpp> // ScreenInteractive
+#include <ftxui/component/screen_interactive.hpp>        // App
+#include <ftxui/component/component.hpp>  // Menu, Renderer
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/terminal.hpp>
+#include <ranges>
 #include <string>
 #include <vector>
 
 using namespace ftxui;
 
 void MainMenu::display() {
-  std::vector<std::string> dash_accounts;
-  for (const auto& [inst, accts] : dash_.accounts()) {
-    dash_accounts.push_back(inst);
-  }
+  auto dash_accounts = dash_.accounts()
+                     | std::views::keys
+                     | std::ranges::to<std::vector<std::string>>();
 
-  auto screen = ScreenInteractive::Fullscreen();  // or TerminalOutput()
+  auto screen = ScreenInteractive::Fullscreen();   // declared before we need its closure
 
   int left_menu_selected = 0;
   MenuOption menu_option;
@@ -24,15 +24,28 @@ void MainMenu::display() {
 
   auto renderer = Renderer(left_menu, [&] {
     int account_list_width = Terminal::Size().dimx / 5;
+
+    Elements rows;
+    if (!dash_accounts.empty()) {
+      const auto& inst = dash_accounts[left_menu_selected];
+      for (const auto& acct : dash_.accounts().at(inst)) {
+        rows.push_back(hbox({
+            text("[" + acct->type_label() + "] "),
+            text(acct->name()),
+            filler(),                                       // pushes balance right
+            text(std::format("${:.2f}", acct->balance())),
+        }));
+      }
+    } else {
+      rows.push_back(text("No accounts connected") | dim);
+    }
+
     return hbox({
-               left_menu->Render() | size(WIDTH, EQUAL, account_list_width),
-               separator(),
-               vbox({
-                   text("Selected: " + dash_accounts[left_menu_selected]),
-                   // account detail for dash_.accounts() goes here
-               }) | flex,
-           }) |
-           border;
+              left_menu->Render() | size(WIDTH, EQUAL, account_list_width),
+              separator(),
+              vbox(std::move(rows)) | flex,
+          }) |
+          border;
   });
 
   screen.Loop(renderer);
