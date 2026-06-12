@@ -10,9 +10,9 @@
 using namespace ftxui;
 
 void MainMenu::display() {
-  auto dash_accounts = dash_.accounts()
-                     | std::views::keys
-                     | std::ranges::to<std::vector<std::string>>();
+
+  std::vector<std::string> dash_accounts{"Summary"};
+  dash_accounts.append_range(dash_.accounts() | std::views::keys);
 
   auto screen = ScreenInteractive::Fullscreen();   // declared before we need its closure
 
@@ -26,8 +26,12 @@ void MainMenu::display() {
     int account_list_width = Terminal::Size().dimx / 5;
 
     Elements rows;
-    if (!dash_accounts.empty()) {
+    if (left_menu_selected == 0) {
+      rows.push_back(hbox({text(dash_.print_all())}));
+    }
+    else {
       const auto& inst = dash_accounts[left_menu_selected];
+
       for (const auto& acct : dash_.accounts().at(inst)) {
         rows.push_back(hbox({
             text("[" + acct->type_label() + "] "),
@@ -36,9 +40,7 @@ void MainMenu::display() {
             text(std::format("${:.2f}", acct->balance())),
         }));
       }
-    } else {
-      rows.push_back(text("No accounts connected") | dim);
-    }
+    } 
 
     return hbox({
               left_menu->Render() | size(WIDTH, EQUAL, account_list_width),

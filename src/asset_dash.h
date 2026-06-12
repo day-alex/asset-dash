@@ -10,6 +10,7 @@ public:
   void run_menu();  // loop
 
   double net_worth() const;
+  std::string print_all();
   const std::unordered_map<
               std::string, std::vector<std::unique_ptr<Account>>>& 
               accounts() const { return accounts_; }
@@ -22,7 +23,6 @@ private:
   std::unordered_map<std::string, std::vector<std::unique_ptr<Account>>> accounts_;
 
   void load_tokens_and_fetch();
-  void print_all();
   void print_by_type();
 };
 

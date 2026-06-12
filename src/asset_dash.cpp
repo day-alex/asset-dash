@@ -85,14 +85,14 @@ double AssetDash::net_worth() const {
     return total;
 }
 
-void AssetDash::print_all() {
+std::string AssetDash::print_all() {
     for (const auto& [inst, accts] : accounts_) {
       std::cout << "\n>>>>>> " << inst << "<<<<<<\n";
       for (const auto& acct : accts) {
         acct->print_summary();
       }
     }
-    std::cout << std::format("\nNet Worth: ${:.2f}\n", net_worth());
+    return std::format("\nNet Worth: ${:.2f}\n", net_worth());
 }
 
 void AssetDash::run_menu() {
