@@ -17,7 +17,7 @@ public:
     double balance() const { return balance_; }
 
     virtual std::string type_label() const = 0;
-    virtual void print_summary() const;
+    virtual std::string summary_str() const;
 
 protected:
     std::string account_id_;

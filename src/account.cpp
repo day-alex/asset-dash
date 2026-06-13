@@ -12,6 +12,6 @@ Account::Account(const json& acct_info, const std::string& inst)
   }
 }
 
-void Account::print_summary() const {
-  std::cout << std::format("\t{:<28} ${:>12.2f}\n", name_, balance_);
+std::string Account::summary_str() const {
+  return std::format("\t{:<28} ${:>12.2f}\n", name_, balance_);
 }

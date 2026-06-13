@@ -11,6 +11,7 @@ public:
 
   double net_worth() const;
   std::string print_all();
+  std::string summary_view_str() const;
   const std::unordered_map<
               std::string, std::vector<std::unique_ptr<Account>>>& 
               accounts() const { return accounts_; }

@@ -20,6 +20,7 @@ void AssetDash::load_tokens_and_fetch() {
     auto tokens = json::parse(f);
 
     httplib::SSLClient cli("production.plaid.com");
+
     for (const auto& t : tokens) {
         json body = {
             {"client_id", env_.client_id()},
@@ -51,7 +52,7 @@ void AssetDash::debug_ascensus() {
     {"client_id", env_.client_id()},
     {"secret", env_.secret()},
     {"institution_id", "ins_116972"},
-    {"country_codes", {"US"}},
+    {"country_codes", {"us"}},
     {"options", {
         {"include_optional_metadata", true},
         {"include_status", true}
@@ -61,11 +62,11 @@ void AssetDash::debug_ascensus() {
   httplib::SSLClient cli("production.plaid.com");
   auto res = cli.Post("/institutions/get_by_id", body.dump(), "application/json");
   if (!res) {
-    std::cerr << "Request failed (no response from Plaid)\n";
+    std::cerr << "request failed (no response from plaid)\n";
     return;
   }
   if (res->status != 200) {
-    std::cerr << "HTTP " << res->status << "\n" << res->body << "\n";
+    std::cerr << "http " << res->status << "\n" << res->body << "\n";
     return;
   }
 
@@ -77,8 +78,8 @@ double AssetDash::net_worth() const {
     double total = 0.0;
     for (const auto& [inst, accts] : accounts_) {
         for (const auto& acct : accts) {
-          // Credit balances should subtract; refine later
-          if (acct->type_label() == "CC ") total -= acct->balance();
+          // credit balances should subtract; refine later
+          if (acct->type_label() == "cc ") total -= acct->balance();
           else total += acct->balance();
         }
     }
@@ -86,13 +87,25 @@ double AssetDash::net_worth() const {
 }
 
 std::string AssetDash::print_all() {
-    for (const auto& [inst, accts] : accounts_) {
-      std::cout << "\n>>>>>> " << inst << "<<<<<<\n";
-      for (const auto& acct : accts) {
-        acct->print_summary();
-      }
+    // for (const auto& [inst, accts] : accounts_) {
+    //   std::cout << "\n>>>>>> " << inst << "<<<<<<\n";
+    //   for (const auto& acct : accts) {
+    //     // acct->print_summary();
+    //   }
+    // }
+    // return std::format("\nnet worth: ${:.2f}\n", net_worth());
+  return "";
+}
+
+std::string AssetDash::summary_view_str() const {
+  std::string summary { "________ Summary of Accounts ________\n" };
+  for (const auto& [inst, accts] : accounts_) {
+    for (const auto& acct : accts) {
+      summary += acct->summary_str();
     }
-    return std::format("\nNet Worth: ${:.2f}\n", net_worth());
+  }
+
+  return summary;
 }
 
 void AssetDash::run_menu() {

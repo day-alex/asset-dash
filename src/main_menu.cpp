@@ -27,7 +27,14 @@ void MainMenu::display() {
 
     Elements rows;
     if (left_menu_selected == 0) {
-      rows.push_back(hbox({text(dash_.print_all())}));
+        std::string summary = dash_.summary_view_str();
+        Elements lines;
+        std::stringstream ss(summary);   // or split manually
+        std::string line;
+        while (std::getline(ss, line)) {
+            lines.push_back(text(line));
+        }
+        rows.push_back(vbox(std::move(lines)));
     }
     else {
       const auto& inst = dash_accounts[left_menu_selected];
