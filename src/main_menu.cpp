@@ -25,8 +25,14 @@ void MainMenu::display() {
   auto renderer = Renderer(left_menu, [&] {
     int account_list_width = Terminal::Size().dimx / 5;
 
-    Elements rows;
+    Elements rows{};
     if (left_menu_selected == 0) {
+        rows.push_back(vbox({
+                text("Summary") | bold | hcenter,
+                separator(),
+              })
+            );
+
         std::string summary = dash_.summary_view_str();
         Elements lines;
         std::stringstream ss(summary);   // or split manually
@@ -49,12 +55,15 @@ void MainMenu::display() {
       }
     } 
 
-    return hbox({
+    return
+        vbox({
+          text("Asset Dash") | bold | hcenter,
+          hbox({
               left_menu->Render() | size(WIDTH, EQUAL, account_list_width),
               separator(),
               vbox(std::move(rows)) | flex,
-          }) |
-          border;
+          }) | border,
+        });
   });
 
   screen.Loop(renderer);

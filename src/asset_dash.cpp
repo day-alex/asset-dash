@@ -98,7 +98,7 @@ std::string AssetDash::print_all() {
 }
 
 std::string AssetDash::summary_view_str() const {
-  std::string summary { "________ Summary of Accounts ________\n" };
+  std::string summary{};
   for (const auto& [inst, accts] : accounts_) {
     for (const auto& acct : accts) {
       summary += acct->summary_str();
