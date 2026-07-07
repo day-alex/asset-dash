@@ -13,5 +13,6 @@ Account::Account(const json& acct_info, const std::string& inst)
 }
 
 std::string Account::summary_str() const {
-  return std::format("\t{:<28} ${:>12.2f}\n", name_, balance_);
+  // TODO: dynamic formatting based on longest institution name
+  return std::format("\t{:<40} ${:>12.2f}\n", institution_, balance_);
 }

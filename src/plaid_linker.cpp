@@ -47,7 +47,7 @@ void PlaidLinker::wait_for_callback() {
         svr.stop();
     });
 
-    std::cout << "Waiting for bank login...\n";
+    // std::cout << "Waiting for bank login...\n";
     svr.listen("localhost", 8080);
 }
 
@@ -119,8 +119,9 @@ void PlaidLinker::save_access_token(const std::string& access_token, const std::
 
 void PlaidLinker::link_account() {
     auto url = create_link_token();
-    std::cout << "Opening browser...\n";
-    std::system(("xdg-open '" + url + "'").c_str());
+    // std::cout << "Opening browser...\n";
+    // std::system(("xdg-open '" + url + "'").c_str());
+    std::system(("open '" + url + "'").c_str());
     wait_for_callback();
     auto public_token = get_public_token();
     if (public_token.empty()) {
@@ -129,5 +130,5 @@ void PlaidLinker::link_account() {
     }
 
     exchange_public_token(public_token);
-    std::cout << "Successfully linked account!\n";
+    // std::cout << "Successfully linked account!\n";
 }
