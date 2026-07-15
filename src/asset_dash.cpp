@@ -76,7 +76,7 @@ void AssetDash::debug_ascensus() {
 
 double AssetDash::net_worth() const {
     double total = 0.0;
-    for (const auto& [inst, accts] : accounts_) {
+    for (const auto &accts: accounts_ | std::views::values) {
         for (const auto& acct : accts) {
           // credit balances should subtract; refine later
           if (acct->type_label() == "cc ") total -= acct->balance();

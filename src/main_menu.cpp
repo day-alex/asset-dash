@@ -37,9 +37,22 @@ void MainMenu::display() {
                 std::stringstream ss(dash_.summary_view_str());
                 std::string line;
                 while (std::getline(ss, line)) lines.push_back(text(line));
-                return vbox({text("Summary") | bold | hcenter,
+                const int dimx = Terminal::Size().dimx;
+                const int menu_w = dimx / 5;
+                const int panel_w = dimx - menu_w - 3;   // -1 menu separator, -2 border
+                const int half = (panel_w - 1) / 2;      // -1 for the inner separator
+                return vbox({
+                    text("Summary") | bold | hcenter,
                     separator(),
-                    vbox(std::move(lines))
+                    hbox({
+                        vbox(std::move(lines)) | size(WIDTH, EQUAL, half),
+                        separator(),
+                        text(std::format("${:.2f}", dash_.net_worth()))
+                            | bold
+                            | color(Color::Green)
+                            | center
+                            | flex_grow,
+                    }) | flex,
                 });
             },
         });
