@@ -5,3 +5,5 @@ build/
 *.env
 compile_commands.json
 .cache/
+cmake-build-debug/
+.idea/
