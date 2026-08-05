@@ -5,7 +5,7 @@
 class MainMenu {
   public:
     explicit MainMenu(AssetDash& dash) : dash_(dash) {}
-    void display();
+    void display() const;
     
   private:
     AssetDash& dash_;

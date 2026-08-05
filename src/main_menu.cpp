@@ -1,4 +1,5 @@
 #include "main_menu.h"
+#include "value_graph.h"
 #include <ftxui/component/screen_interactive.hpp>        // App
 #include <ftxui/component/component.hpp>  // Menu, Renderer
 #include <ftxui/dom/elements.hpp>
@@ -19,10 +20,11 @@ namespace {
     };
 }
 
-void MainMenu::display() {
+void MainMenu::display() const {
     auto screen = ScreenInteractive::Fullscreen();
     int selected = 0;
 
+    ValueGraph vg{{12'450.f, 12'610.f, 12'380.f, 12'900.f, 13'240.f, 13'115.f}};
     std::vector<LeftEntry> entries;
     std::vector<std::string> option_labels;
 
@@ -41,17 +43,19 @@ void MainMenu::display() {
                 const int menu_w = dimx / 5;
                 const int panel_w = dimx - menu_w - 3;   // -1 menu separator, -2 border
                 const int half = (panel_w - 1) / 2;      // -1 for the inner separator
+
                 return vbox({
                     text("Summary") | bold | hcenter,
                     separator(),
                     hbox({
                         vbox(std::move(lines)) | size(WIDTH, EQUAL, half),
                         separator(),
-                        text(std::format("${:.2f}", dash_.net_worth()))
-                            | bold
-                            | color(Color::Green)
-                            | center
-                            | flex_grow,
+                        vbox({
+                            text(std::format("${:.2f}", dash_.net_worth()))
+                                | bold | color(Color::Green) | hcenter,
+                            separator(),
+                            graph(std::ref(vg)) | color(Color::GreenLight) | flex,
+                        }) | flex,                                  // <-- claims the panel width
                     }) | flex,
                 });
             },
@@ -143,15 +147,14 @@ void MainMenu::display() {
     option.on_enter = [&] { entries[selected].on_enter(); };
     Component left_menu = Menu(&option_labels, &selected, option);
 
-    auto renderer = Renderer(left_menu, [&] {
+    const auto renderer = Renderer(left_menu, [&] {
         return vbox({
             text("Asset Dash") | bold | hcenter,
             hbox({
-                left_menu->Render()
-                    | size(WIDTH, EQUAL, Terminal::Size().dimx / 5),
+                left_menu->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx / 5),
                 separator(),
                 entries[selected].render_right() | flex,
-            }) | border,
+            }) | border | flex,                          // <-- fills the terminal height
         });
     });
 
