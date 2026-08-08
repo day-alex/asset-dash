@@ -38,7 +38,7 @@ add_executable(asset_dash
         src/account_factory.cpp
         src/main_menu.cpp
         src/value_graph.cpp
-        src/value_graph.h
+        src/db.cpp
 )
 
 target_link_libraries(asset_dash PRIVATE
