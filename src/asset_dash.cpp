@@ -47,33 +47,6 @@ void AssetDash::link_new_account() {
     // maybe return added account institution name?
 }
 
-void AssetDash::debug_ascensus() {
-  json body = {
-    {"client_id", env_.client_id()},
-    {"secret", env_.secret()},
-    {"institution_id", "ins_116972"},
-    {"country_codes", {"us"}},
-    {"options", {
-        {"include_optional_metadata", true},
-        {"include_status", true}
-    }}
-  };
-
-  httplib::SSLClient cli("production.plaid.com");
-  auto res = cli.Post("/institutions/get_by_id", body.dump(), "application/json");
-  if (!res) {
-    std::cerr << "request failed (no response from plaid)\n";
-    return;
-  }
-  if (res->status != 200) {
-    std::cerr << "http " << res->status << "\n" << res->body << "\n";
-    return;
-  }
-
-  auto parsed = json::parse(res->body);
-  std::cout << parsed.dump(2) << std::endl;
-}
-
 double AssetDash::net_worth() const {
     double total = 0.0;
     for (const auto &accts: accounts_ | std::views::values) {
@@ -84,17 +57,6 @@ double AssetDash::net_worth() const {
         }
     }
     return total;
-}
-
-std::string AssetDash::print_all() {
-    // for (const auto& [inst, accts] : accounts_) {
-    //   std::cout << "\n>>>>>> " << inst << "<<<<<<\n";
-    //   for (const auto& acct : accts) {
-    //     // acct->print_summary();
-    //   }
-    // }
-    // return std::format("\nnet worth: ${:.2f}\n", net_worth());
-  return "";
 }
 
 std::string AssetDash::summary_view_str() const {

@@ -10,20 +10,17 @@ public:
   void run_menu();  // loop
 
   double net_worth() const;
-  std::string print_all();
   std::string summary_view_str() const;
   const std::unordered_map<
               std::string, std::vector<std::unique_ptr<Account>>>& 
               accounts() const { return accounts_; }
 
   void link_new_account();
-  void debug_ascensus();
 
 private:
   PlaidEnv env_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<Account>>> accounts_;
 
   void load_tokens_and_fetch();
-  void print_by_type();
 };
 

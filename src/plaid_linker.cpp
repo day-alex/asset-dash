@@ -90,12 +90,14 @@ void PlaidLinker::exchange_public_token(const std::string& public_token) {
     }
 
     auto parsed = json::parse(res->body);
+    // TODO: save_access_token will be deprecated
     save_access_token(
         parsed["access_token"].get<std::string>(),
         parsed["item_id"].get<std::string>()
     );
 }
 
+// TODO: Deprecate - save_to_db will replace
 void PlaidLinker::save_access_token(const std::string& access_token, const std::string& item_id) {
     auto config_dir = fs::path(std::getenv("HOME")) / ".config" / "asset_dash";
     fs::create_directories(config_dir);

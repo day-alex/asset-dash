@@ -12,11 +12,41 @@ DB::DB(const std::string& path)
 }
 
 void DB::init() {
+    db_.exec(R"(
+        CREATE TABLE IF NOT EXISTS accounts (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            plaid_id        TEXT NOT NULL UNIQUE,
+            access_token    TEXT NOT NULL,
+            name            TEXT NOT NULL,
+            type            TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    )");
 
+    db_.exec(R"(
+        CREATE TABLE IF NOT EXISTS balance_history (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id    INTEGER NOT NULL,
+            balance       REAL NOT NULL,
+            snapshot_date TEXT NOT NULL DEFAULT (date('now')),
+            FOREIGN KEY (account_id) REFERENCES accounts(id),
+            UNIQUE(account_id, snapshot_date)
+        )
+    )");
 }
 
 int DB::upsert(const Account& acct) {
-    return 0;
+    SQLite::Statement stmt(db_, R"(
+        INSERT INTO accounts (plaid_id, name, type)
+        VALUES (?, ?, ?)
+        ON CONFLICT(plaid_id) DO UPDATE SET name=excluded.name, type=excluded.type
+        RETURNING id
+    )");
+    stmt.bind(1, acct.plaid_id);
+    stmt.bind(2, acct.name);
+    stmt.bind(3, acct.type);
+    stmt.executeStep();
+    return stmt.getColumn(0).getInt();
 }
 
 std::vector<Account> DB::list_accounts() const {
