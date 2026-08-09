@@ -1,5 +1,6 @@
 #pragma once
 
+#include "db.h"
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -11,10 +12,11 @@ using Json = nlohmann::json;
 class PlaidLinker {
 public:
   PlaidLinker() = delete;
-  PlaidLinker(const std::string&, const std::string&);
+  PlaidLinker(const std::string&, const std::string&, DB& db);
   void link_account();
   std::string get_public_token();
 private:
+  DB& db_;
   std::string client_id_;
   std::string secret_;
   std::string link_token_;

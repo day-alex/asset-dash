@@ -12,7 +12,6 @@ public:
 
     void init();
     int upsert(const Account& acct);
-    [[nodiscard]] std::vector<Account> list_accounts() const;
 
     void snapshot_balance(int balance_id, double balance);
     std::vector<std::pair<std::string, double>> get_history(int account_id, int days = 30);

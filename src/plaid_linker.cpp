@@ -7,9 +7,10 @@
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
-PlaidLinker::PlaidLinker(const std::string& client_id, const std::string& secret)
+PlaidLinker::PlaidLinker(const std::string& client_id, const std::string& secret, DB& db)
     : client_id_(client_id),
-      secret_(secret) {}
+      secret_(secret),
+      db_(db)   {}
 
 std::string PlaidLinker::create_link_token() {
   json body{
@@ -95,6 +96,34 @@ void PlaidLinker::exchange_public_token(const std::string& public_token) {
         parsed["access_token"].get<std::string>(),
         parsed["item_id"].get<std::string>()
     );
+}
+
+void PlaidLinker::save_to_db(const std::string& access_token) {
+    json body = {
+        {"client_id", client_id_},
+        {"secret", secret_},
+        {"access_token", access_token}
+    };
+
+    auto res = cli_.Post("/accounts/get", body.dump(), "application/json");
+    if (!res || res->status != 200) {
+        std::cerr << "Failed to fetch accounts\n";
+        if (res) std::cerr << res->body << "\n";
+        return;
+    }
+
+    auto data = json::parse(res->body);
+
+    for (const auto& acct : data["accounts"]) {
+        int id = db_.upsert(
+            acct["account_id"].get<std::string>(),
+            acct["name"].get<std::string>(),
+            acct["type"].get<std::string>(),
+            access_token
+        );
+        double bal = acct["balances"]["current"].get<double>();
+        db_.snapshot_balance(id, bal);
+    }
 }
 
 // TODO: Deprecate - save_to_db will replace
