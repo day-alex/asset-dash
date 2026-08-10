@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "account.h"
+#include "db.h"
 #include "plaid_env.h"
 
 class AssetDash {
@@ -19,8 +20,12 @@ public:
 
 private:
   PlaidEnv env_;
+  DB db_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<Account>>> accounts_;
 
   void load_tokens_and_fetch();
+  void migrate_legacy_tokens();
+  std::pair<std::string, std::vector<std::unique_ptr<Account>>>
+      fetch_and_store_token(const std::string& access_token);
 };
 

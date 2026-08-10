@@ -16,6 +16,9 @@ public:
     const std::optional<std::string>& subtype() const { return subtype_; }
     double balance() const { return balance_; }
 
+    const std::string& access_token() const { return access_token_; }
+    void set_access_token(const std::string& access_token) { access_token_ = access_token; }
+
     virtual std::string type_label() const = 0;
     virtual std::string summary_str() const;
 
@@ -25,4 +28,5 @@ protected:
     std::string institution_;
     std::optional<std::string> subtype_;
     double balance_;
+    std::string access_token_;
 };

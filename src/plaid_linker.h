@@ -1,6 +1,7 @@
 #pragma once
 
 #include "db.h"
+#include "account_factory.h"
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -25,5 +26,5 @@ private:
   std::string create_link_token();
   void wait_for_callback();
   void exchange_public_token(const std::string& public_token);
-  void save_access_token(const std::string& access_token, const std::string& item_id);
+  void save_to_db(const std::string& access_token);
 };

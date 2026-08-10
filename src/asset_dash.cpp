@@ -2,11 +2,22 @@
 #include "account_factory.h"
 #include "plaid_linker.h"
 #include <httplib.h>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <format>
 
-AssetDash::AssetDash() {
+namespace {
+    std::string db_path() {
+        auto config_dir = std::filesystem::path(std::getenv("HOME")) / ".config" / "asset_dash";
+        std::filesystem::create_directories(config_dir);
+        return (config_dir / "asset_dash.db").string();
+    }
+}
+
+AssetDash::AssetDash() : db_(db_path()) {
+    db_.init();
+    migrate_legacy_tokens();
     refresh();
 }
 
@@ -15,34 +26,62 @@ void AssetDash::refresh() {
     load_tokens_and_fetch();
 }
 
-void AssetDash::load_tokens_and_fetch() {
-    std::ifstream f(std::string(std::getenv("HOME")) + "/.config/asset_dash/tokens.json");
-    auto tokens = json::parse(f);
-
+std::pair<std::string, std::vector<std::unique_ptr<Account>>>
+AssetDash::fetch_and_store_token(const std::string& access_token) {
     httplib::SSLClient cli("production.plaid.com");
 
-    for (const auto& t : tokens) {
-        json body = {
-            {"client_id", env_.client_id()},
-            {"secret", env_.secret()},
-            {"access_token", t["access_token"]}
-        };
-        auto res = cli.Post("/accounts/get", body.dump(), "application/json");
-        if (!res || res->status != 200) continue;
+    json body = {
+        {"client_id", env_.client_id()},
+        {"secret", env_.secret()},
+        {"access_token", access_token}
+    };
+    auto res = cli.Post("/accounts/get", body.dump(), "application/json");
+    if (!res || res->status != 200) return {};
 
-        auto data = json::parse(res->body);
-        // std::cout << data.dump(2) << "\n";
+    auto data = json::parse(res->body);
+    std::string inst = data["item"]["institution_name"].get<std::string>();
 
-        std::string inst = data["item"]["institution_name"].get<std::string>();
+    std::vector<std::unique_ptr<Account>> accounts;
+    for (const auto& acct : data["accounts"]) {
+        auto account = make_account(acct, inst);
+        account->set_access_token(access_token);
+        int id = db_.upsert(*account);
+        db_.snapshot_balance(id, account->balance());
+        accounts.push_back(std::move(account));
+    }
+    return {inst, std::move(accounts)};
+}
 
-        for (const auto& acct : data["accounts"]) {
-            accounts_[inst].push_back(make_account(acct, inst));
-        }
+void AssetDash::load_tokens_and_fetch() {
+    for (const auto& access_token : db_.get_access_tokens()) {
+        auto [inst, accounts] = fetch_and_store_token(access_token);
+        if (inst.empty()) continue;
+        for (auto& account : accounts) accounts_[inst].push_back(std::move(account));
     }
 }
 
+// One-time migration from the legacy tokens.json file to the SQLite-backed
+// account store. Safe to call on every startup: it no-ops once tokens.json
+// has been renamed aside.
+void AssetDash::migrate_legacy_tokens() {
+    auto config_dir = std::filesystem::path(std::getenv("HOME")) / ".config" / "asset_dash";
+    auto legacy_path = config_dir / "tokens.json";
+    if (!std::filesystem::exists(legacy_path)) return;
+
+    std::ifstream f(legacy_path);
+    json tokens = json::parse(f);
+    f.close();
+
+    for (const auto& t : tokens) {
+        fetch_and_store_token(t["access_token"].get<std::string>());
+    }
+
+    std::filesystem::rename(legacy_path, config_dir / "tokens.json.migrated");
+    std::cout << "Migrated " << tokens.size() << " legacy access token(s) into the database.\n";
+}
+
 void AssetDash::link_new_account() {
-    PlaidLinker linker(env_.client_id(), env_.secret());
+    PlaidLinker linker(env_.client_id(), env_.secret(), db_);
     linker.link_account();
     // maybe return added account institution name?
 }
@@ -81,10 +120,8 @@ void AssetDash::run_menu() {
         std::string choice;
         std::getline(std::cin, choice);
 
-        if (choice == "1") print_all();
-        else if (choice == "2") { refresh(); std::cout << "Refreshed.\n"; }
-        else if (choice == "3") link_new_account();
-        else if (choice == "d") debug_ascensus();
+        if (choice == "1") { refresh(); std::cout << "Refreshed.\n"; }
+        else if (choice == "2") link_new_account();
         else if (choice == "q") break;
     }
 }

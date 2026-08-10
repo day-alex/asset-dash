@@ -13,6 +13,8 @@ public:
     void init();
     int upsert(const Account& acct);
 
+    std::vector<std::string> get_access_tokens();
+
     void snapshot_balance(int balance_id, double balance);
     std::vector<std::pair<std::string, double>> get_history(int account_id, int days = 30);
     std::vector<std::pair<std::string, double>> get_portfolio_history(int days = 30);

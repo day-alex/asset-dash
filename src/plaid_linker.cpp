@@ -1,11 +1,8 @@
 #include "plaid_linker.h"
 #include <cstdlib>
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 
 using json = nlohmann::json;
-namespace fs = std::filesystem;
 
 PlaidLinker::PlaidLinker(const std::string& client_id, const std::string& secret, DB& db)
     : client_id_(client_id),
@@ -91,11 +88,7 @@ void PlaidLinker::exchange_public_token(const std::string& public_token) {
     }
 
     auto parsed = json::parse(res->body);
-    // TODO: save_access_token will be deprecated
-    save_access_token(
-        parsed["access_token"].get<std::string>(),
-        parsed["item_id"].get<std::string>()
-    );
+    save_to_db(parsed["access_token"].get<std::string>());
 }
 
 void PlaidLinker::save_to_db(const std::string& access_token) {
@@ -113,39 +106,14 @@ void PlaidLinker::save_to_db(const std::string& access_token) {
     }
 
     auto data = json::parse(res->body);
+    std::string inst = data["item"]["institution_name"].get<std::string>();
 
     for (const auto& acct : data["accounts"]) {
-        int id = db_.upsert(
-            acct["account_id"].get<std::string>(),
-            acct["name"].get<std::string>(),
-            acct["type"].get<std::string>(),
-            access_token
-        );
-        double bal = acct["balances"]["current"].get<double>();
-        db_.snapshot_balance(id, bal);
+        auto account = make_account(acct, inst);
+        account->set_access_token(access_token);
+        int id = db_.upsert(*account);
+        db_.snapshot_balance(id, account->balance());
     }
-}
-
-// TODO: Deprecate - save_to_db will replace
-void PlaidLinker::save_access_token(const std::string& access_token, const std::string& item_id) {
-    auto config_dir = fs::path(std::getenv("HOME")) / ".config" / "asset_dash";
-    fs::create_directories(config_dir);
-    auto path = config_dir / "tokens.json";
-
-    json tokens = json::array();
-    if (fs::exists(path)) {
-        std::ifstream in(path);
-        tokens = json::parse(in);
-    }
-
-    tokens.push_back({
-        {"access_token", access_token},
-        {"item_id", item_id}
-    });
-
-    std::ofstream out(path);
-    out << tokens.dump(2);
-    std::cout << "Access token saved to " << path.string() << "\n";
 }
 
 void PlaidLinker::link_account() {

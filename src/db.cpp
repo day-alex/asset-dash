@@ -37,16 +37,30 @@ void DB::init() {
 
 int DB::upsert(const Account& acct) {
     SQLite::Statement stmt(db_, R"(
-        INSERT INTO accounts (plaid_account_id, name, type)
-        VALUES (?, ?, ?)
-        ON CONFLICT(plaid_id) DO UPDATE SET name=excluded.name, type=excluded.type
+        INSERT INTO accounts (plaid_account_id, access_token, name, type)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(plaid_account_id) DO UPDATE SET
+            access_token=excluded.access_token,
+            name=excluded.name,
+            type=excluded.type
         RETURNING id
     )");
     stmt.bind(1, acct.account_id());
-    stmt.bind(2, acct.name());
-    stmt.bind(3, acct.type_label());
+    stmt.bind(2, acct.access_token());
+    stmt.bind(3, acct.name());
+    stmt.bind(4, acct.type_label());
     stmt.executeStep();
     return stmt.getColumn(0).getInt();
+}
+
+std::vector<std::string> DB::get_access_tokens() {
+    SQLite::Statement stmt(db_, "SELECT DISTINCT access_token FROM accounts");
+
+    std::vector<std::string> tokens;
+    while (stmt.executeStep()) {
+        tokens.push_back(stmt.getColumn(0).getString());
+    }
+    return tokens;
 }
 
 void DB::snapshot_balance(int account_id, double balance) {
