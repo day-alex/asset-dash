@@ -113,3 +113,15 @@ std::string AssetDash::summary_view_str() const {
   return summary;
 }
 
+
+std::vector<float> AssetDash::portfolio_graph_values() {
+  PortfolioValues pv = db_.get_portfolio_history();
+
+  std::vector<float> vals{};
+
+  for (const auto& pair : pv) {
+    vals.push_back(pair.second);
+  }
+
+  return vals;
+}

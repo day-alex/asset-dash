@@ -23,8 +23,8 @@ namespace {
 void MainMenu::display() const {
     auto screen = ScreenInteractive::Fullscreen();
     int selected = 0;
-
-    ValueGraph vg{{12'450.f, 12'610.f, 12'380.f, 12'900.f, 13'240.f, 13'115.f}};
+    
+    ValueGraph vg{dash_.portfolio_graph_values()};
     std::vector<LeftEntry> entries;
     std::vector<std::string> option_labels;
 
