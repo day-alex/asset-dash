@@ -27,6 +27,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ftxui httplib json SQLiteCpp)
 
+target_compile_options(SQLiteCpp PUBLIC -include cstdint)
+
 find_package(OpenSSL REQUIRED)
 
 add_executable(asset_dash
@@ -51,3 +53,8 @@ target_link_libraries(asset_dash PRIVATE
         OpenSSL::Crypto
         SQLiteCpp
 )
+
+target_compile_options(asset_dash PRIVATE -fsanitize=address -g)
+target_link_options(asset_dash PRIVATE -fsanitize=address)
+
+

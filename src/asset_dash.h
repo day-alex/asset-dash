@@ -8,7 +8,6 @@ class AssetDash {
 public:
   AssetDash();
   void refresh();   // pulls balances
-  void run_menu();  // loop
 
   double net_worth() const;
   std::string summary_view_str() const;

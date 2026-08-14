@@ -36,7 +36,11 @@ AssetDash::fetch_and_store_token(const std::string& access_token) {
         {"access_token", access_token}
     };
     auto res = cli.Post("/accounts/get", body.dump(), "application/json");
-    if (!res || res->status != 200) return {};
+    if (!res || res->status != 200) {
+      std::cerr << "Plaid call failed for token: " << access_token.substr(0, 10) << "...\n";
+      if (res) std::cerr << "Status: " << res->status << " Body: " << res->body << "\n";
+      return {};
+    }
 
     auto data = json::parse(res->body);
     std::string inst = data["item"]["institution_name"].get<std::string>();
@@ -109,19 +113,3 @@ std::string AssetDash::summary_view_str() const {
   return summary;
 }
 
-void AssetDash::run_menu() {
-    while (true) {
-        std::cout << "\n=== asset_dash ===\n"
-                  << "1. View all accounts\n"
-                  << "2. Refresh balances\n"
-                  << "3. Link New Account\n"
-                  << "d. Debug ascensus\n"
-                  << "q. Quit\n> ";
-        std::string choice;
-        std::getline(std::cin, choice);
-
-        if (choice == "1") { refresh(); std::cout << "Refreshed.\n"; }
-        else if (choice == "2") link_new_account();
-        else if (choice == "q") break;
-    }
-}

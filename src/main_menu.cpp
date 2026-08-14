@@ -61,56 +61,56 @@ void MainMenu::display() const {
             },
         });
 
-        bool refreshing = false;
-        std::string refresh_status;
+        auto refreshing = std::make_shared<bool>(false);
+        auto refresh_status = std::make_shared<std::string>();
 
         entries.push_back({
             "Refresh",
-            [&] {
-                if (refreshing) return;
-                refreshing = true;
-                refresh_status = "Refreshing...";
-                std::thread([&] {
+            [&, refreshing, refresh_status] {
+                if (*refreshing) return;
+                *refreshing = true;
+                *refresh_status = "Refreshing...";
+                std::thread([&, refreshing, refresh_status] {
                     dash_.refresh();
-                    screen.Post([&] {
-                        refreshing = false;
-                        refresh_status = "Account balances refreshed.";
+                    screen.Post([&, refreshing, refresh_status] {
+                        *refreshing = false;
+                        *refresh_status = "Account balances refreshed.";
                         rebuild_entries();
                     });
                     screen.PostEvent(Event::Custom);
                 }).detach();
             },
-            [&] {
-                return text(refreshing ? refresh_status : "Press Enter to refresh account balances.")
+            [&, refreshing, refresh_status] {
+                return text(*refreshing ? *refresh_status : "Press Enter to refresh account balances.")
                         | hcenter;
             },
         });
 
-        bool linking = false;
-        std::string link_status;
+        auto linking = std::make_shared<bool>(false);
+        auto link_status = std::make_shared<std::string>();
 
         entries.push_back({
             "Link New Account",
-            [&] {
-                if (linking) return;
-                linking = true;
-                link_status = "Opening browser... complete the Plaid flow there";
+            [&, linking, link_status] {
+                if (*linking) return;
+                *linking = true;
+                *link_status = "Opening browser... complete the Plaid flow there";
 
-                std::thread([&] {
+                std::thread([&, linking, link_status] {
                     dash_.link_new_account();
                     screen.Post([&] {
-                        linking = false;
-                        link_status = "Account successfully linked";
+                        *linking = false;
+                        *link_status = "Account successfully linked";
                         rebuild_entries(); // new acct will appear
                     });
                     screen.PostEvent(Event::Custom);
                 }).detach();
             },
-            [&] {
+            [&, linking, link_status] {
                 return vbox({
                     text("Link New Account") | bold | hcenter,
                     separator(),
-                    text(linking ? link_status : "Press Enter to link a new account")
+                    text(*linking ? *link_status : "Press Enter to link a new account")
                         | hcenter,
                 });
             },
