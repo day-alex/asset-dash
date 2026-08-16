@@ -86,4 +86,5 @@ left-hand menu and Enter to select an item:
 
 - Plaid access tokens and account metadata are stored locally in the
   SQLite database; nothing is sent anywhere except to Plaid's API.
-- This is a personal project under active development; expect rough edges.
+- Just a heads up, this is a personal project under active development that I
+  like to use for learning C++ so there will be some rough spots.
