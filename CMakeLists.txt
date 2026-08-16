@@ -38,6 +38,7 @@ add_executable(asset_dash
         src/asset_dash.cpp
         src/account.cpp
         src/account_factory.cpp
+        src/custom_account.cpp
         src/main_menu.cpp
         src/value_graph.cpp
         src/db.cpp

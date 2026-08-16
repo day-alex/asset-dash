@@ -1,5 +1,6 @@
 #include "asset_dash.h"
 #include "account_factory.h"
+#include "custom_account.h"
 #include "plaid_linker.h"
 #include <httplib.h>
 #include <filesystem>
@@ -24,6 +25,7 @@ AssetDash::AssetDash() : db_(db_path()) {
 void AssetDash::refresh() {
     accounts_.clear();
     load_tokens_and_fetch();
+    load_custom_accounts();
 }
 
 std::pair<std::string, std::vector<std::unique_ptr<Account>>>
@@ -90,6 +92,19 @@ void AssetDash::link_new_account() {
     // maybe return added account institution name?
 }
 
+void AssetDash::load_custom_accounts() {
+    for (const auto& [id, name, type, balance] : db_.get_custom_accounts()) {
+        accounts_[name].push_back(
+            std::make_unique<CustomAccount>(std::to_string(id), name, type, balance));
+    }
+}
+
+void AssetDash::add_custom_account(const std::string& name, const std::string& type, double balance) {
+    int id = db_.insert_custom_account(name, type, balance);
+    accounts_[name].push_back(
+        std::make_unique<CustomAccount>(std::to_string(id), name, type, balance));
+}
+
 double AssetDash::net_worth() const {
     double total = 0.0;
     for (const auto &accts: accounts_ | std::views::values) {
@@ -113,3 +128,15 @@ std::string AssetDash::summary_view_str() const {
   return summary;
 }
 
+
+std::vector<float> AssetDash::portfolio_graph_values() {
+  PortfolioValues pv = db_.get_portfolio_history();
+
+  std::vector<float> vals{};
+
+  for (const auto& pair : pv) {
+    vals.push_back(pair.second);
+  }
+
+  return vals;
+}

@@ -12,6 +12,13 @@ Account::Account(const json& acct_info, const std::string& inst)
   }
 }
 
+Account::Account(std::string account_id, std::string name, std::string institution, double balance)
+  : account_id_(std::move(account_id)),
+    name_(std::move(name)),
+    institution_(std::move(institution)),
+    balance_(balance) {
+}
+
 std::string Account::summary_str() const {
   // TODO: dynamic formatting based on longest institution name
   return std::format("\t{:<40} ${:>12.2f}\n", institution_, balance_);

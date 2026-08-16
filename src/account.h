@@ -10,6 +10,11 @@ public:
     Account(const json& acct_info, const std::string& inst);
     virtual ~Account() = default;
 
+protected:
+    Account(std::string account_id, std::string name, std::string institution, double balance);
+
+public:
+
     const std::string& account_id() const { return account_id_; }
     const std::string& name() const { return name_; }
     const std::string& institution() const { return institution_; }

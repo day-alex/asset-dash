@@ -5,7 +5,10 @@
 #include "plaid_env.h"
 
 class AssetDash {
+
 public:
+  using PortfolioValues = std::vector<std::pair<std::string, double>>;
+  
   AssetDash();
   void refresh();   // pulls balances
 
@@ -16,13 +19,15 @@ public:
               accounts() const { return accounts_; }
 
   void link_new_account();
-
+  void add_custom_account(const std::string& name, const std::string& type, double balance);
+  std::vector<float> portfolio_graph_values();
 private:
   PlaidEnv env_;
   DB db_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<Account>>> accounts_;
 
   void load_tokens_and_fetch();
+  void load_custom_accounts();
   void migrate_legacy_tokens();
   std::pair<std::string, std::vector<std::unique_ptr<Account>>>
       fetch_and_store_token(const std::string& access_token);
