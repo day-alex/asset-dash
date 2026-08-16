@@ -1,14 +1,11 @@
+#pragma once
 #include "account.h"
 #include <string>
-#include <vector>
-#include <algorithm>
-#include <memory>
 
-
+// Manually-entered account with no Plaid connection (e.g. a 401k).
 class CustomAccount : public Account {
-private:
-    DB& db_;
 public:
-    CustomAccount
-};
+    CustomAccount(std::string account_id, std::string name, std::string type, double balance);
 
+    std::string type_label() const override { return "CST"; }
+};
